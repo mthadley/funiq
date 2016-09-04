@@ -5,18 +5,17 @@ use std::hash::{Hash, Hasher, SipHasher};
 use std::io::{self, Read};
 
 #[derive(Debug)]
-pub struct Error<'a> {
+pub struct Error {
     inner: io::Error,
-    path: &'a str,
+    path: Option<String>,
 }
 
 #[inline]
-pub fn process_files<'a>(paths: &[&'a str]) -> Result<(Vec<&'a str>, Vec<&'a str>), Error<'a>> {
-    let mut unique = HashMap::new();
-    let mut duplicate = Vec::new();
+pub fn process_files<'a>(paths: &'a [String]) -> Result<(Vec<&'a str>, Vec<&'a str>), Error> {
+    let mut unique: HashMap<u64, &str> = HashMap::new();
+    let mut duplicate: Vec<&str> = Vec::new();
 
-    for p in paths {
-        let path = *p;
+    for path in paths {
         match File::open(&path).and_then(hash_file) {
             Ok(hash) => {
                 if unique.contains_key(&hash) {
@@ -28,7 +27,7 @@ pub fn process_files<'a>(paths: &[&'a str]) -> Result<(Vec<&'a str>, Vec<&'a str
             Err(e) => {
                 return Err(Error {
                     inner: e,
-                    path: path,
+                    path: Some(path.to_owned()),
                 })
             }
         }
@@ -45,8 +44,21 @@ fn hash_file(file: File) -> io::Result<u64> {
     Ok(s.finish())
 }
 
-impl<'a> fmt::Display for Error<'a> {
+impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}: {}", self.path, self.inner)
+        if let Some(ref path) = self.path {
+            write!(f, "{}: {}", path, self.inner)
+        } else {
+            write!(f, "{}", self.inner)
+        }
+    }
+}
+
+impl From<io::Error> for Error {
+    fn from(e: io::Error) -> Self {
+        Error {
+            inner: e,
+            path: None,
+        }
     }
 }
