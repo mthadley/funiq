@@ -7,8 +7,8 @@ use std::process::exit;
 
 fn main() {
     let matches = App::new("funiq")
-        .version("1.0.0")
-        .author("Michael Hadley <mikethadley@gmail.com>")
+        .version(env!("CARGO_PKG_VERSION"))
+        .author(env!("CARGO_PKG_AUTHORS"))
         .about("Outputs unique or duplicate files based on their data")
         .arg(Arg::with_name("invert")
             .short("i")
