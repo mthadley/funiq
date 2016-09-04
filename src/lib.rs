@@ -46,10 +46,9 @@ fn hash_file(file: File) -> io::Result<u64> {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if let Some(ref path) = self.path {
-            write!(f, "{}: {}", path, self.inner)
-        } else {
-            write!(f, "{}", self.inner)
+        match self.path {
+            Some(ref path) => write!(f, "{}: {}", path, self.inner),
+            _ => self.inner.fmt(f),
         }
     }
 }
