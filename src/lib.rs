@@ -16,20 +16,19 @@ pub fn process_files<'a>(paths: &'a [String]) -> Result<(Vec<&'a str>, Vec<&'a s
     let mut duplicate: Vec<&str> = Vec::new();
 
     for path in paths {
-        match File::open(&path).and_then(hash_file) {
-            Ok(hash) => {
-                if unique.contains_key(&hash) {
-                    duplicate.push(path);
-                } else {
-                    unique.insert(hash, path);
-                }
-            }
-            Err(e) => {
-                return Err(Error {
+        let hash = try!(File::open(&path)
+            .and_then(hash_file)
+            .map_err(|e| {
+                Error {
                     inner: e,
                     path: Some(path.to_owned()),
-                })
-            }
+                }
+            }));
+
+        if unique.contains_key(&hash) {
+            duplicate.push(path);
+        } else {
+            unique.insert(hash, path);
         }
     }
 
