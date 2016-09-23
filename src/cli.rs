@@ -56,9 +56,7 @@ fn get_stdin_files() -> io::Result<Vec<String>> {
 fn print_result(unique: &[&str], duplicate: &[&str], matches: &ArgMatches) {
     if matches.is_present("summary") {
         let duplicate_len = duplicate.len();
-        println!("There are {} unique files and {} duplicates.",
-                 unique.len() - duplicate_len,
-                 duplicate_len);
+        print_summary(duplicate_len, unique.len() - duplicate_len);
     } else {
         for file in if matches.is_present("invert") {
             duplicate
@@ -68,4 +66,16 @@ fn print_result(unique: &[&str], duplicate: &[&str], matches: &ArgMatches) {
             println!("{}", file)
         }
     };
+}
+
+fn print_summary(duplicate_len: usize, unique_len: usize) {
+    println!("There are {} unique {} and {} {}.",
+             unique_len,
+             pluralize(unique_len, "file", "files"),
+             duplicate_len,
+             pluralize(duplicate_len, "duplicate", "duplicates"));
+}
+
+fn pluralize<'a>(count: usize, singular: &'a str, plural: &'a str) -> &'a str {
+    if count == 1 { singular } else { plural }
 }
