@@ -55,9 +55,10 @@ fn get_stdin_files() -> io::Result<Vec<String>> {
 
 fn print_result(unique: &[&str], duplicate: &[&str], matches: &ArgMatches) {
     if matches.is_present("summary") {
+        let duplicate_len = duplicate.len();
         println!("There are {} unique files and {} duplicates.",
-                 unique.len(),
-                 duplicate.len());
+                 unique.len() - duplicate_len,
+                 duplicate_len);
     } else {
         for file in if matches.is_present("invert") {
             duplicate
