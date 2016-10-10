@@ -32,7 +32,7 @@ pub fn process_files<'a>(paths: &'a [String]) -> Result<(Vec<&'a str>, Vec<&'a s
         }
     }
 
-    Ok((unique.values().map(|s| *s).collect(), duplicate))
+    Ok((unique.values().cloned().collect(), duplicate))
 }
 
 fn hash_file(file: File) -> io::Result<u64> {
