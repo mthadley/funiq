@@ -16,14 +16,14 @@ pub fn process_files<'a>(paths: &'a [String]) -> Result<(Vec<&'a str>, Vec<&'a s
     let mut duplicate: Vec<&str> = Vec::new();
 
     for path in paths {
-        let hash = try!(File::open(&path)
+        let hash = File::open(&path)
             .and_then(hash_file)
             .map_err(|e| {
                 Error {
                     inner: e,
                     path: Some(path.to_owned()),
                 }
-            }));
+            })?;
 
         if unique.contains_key(&hash) {
             duplicate.push(path);
@@ -38,7 +38,7 @@ pub fn process_files<'a>(paths: &'a [String]) -> Result<(Vec<&'a str>, Vec<&'a s
 fn hash_file(file: File) -> io::Result<u64> {
     let mut s = SipHasher::new();
     for b in file.bytes() {
-        try!(b).hash(&mut s);
+        b?.hash(&mut s);
     }
     Ok(s.finish())
 }

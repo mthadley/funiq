@@ -25,12 +25,12 @@ pub fn run() -> Result<(), Error> {
     let mut files = Vec::new();
 
     if matches.is_present("stdin") {
-        files.append(&mut try!(get_stdin_files()));
+        files.append(&mut get_stdin_files()?);
     }
     files.append(&mut get_arg_files(&matches));
     files.dedup();
 
-    let (unique, duplicate) = try!(process_files(&files));
+    let (unique, duplicate) = process_files(&files)?;
     print_result(&unique, &duplicate, &matches);
 
     Ok(())
@@ -48,7 +48,7 @@ fn get_stdin_files() -> io::Result<Vec<String>> {
     let mut lines = Vec::new();
     let stdin = io::stdin();
     for line in stdin.lock().lines() {
-        lines.push(try!(line))
+        lines.push(line?)
     }
     Ok(lines)
 }
