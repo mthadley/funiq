@@ -1,7 +1,8 @@
+use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
 use std::fmt;
 use std::fs::File;
-use std::hash::{Hash, Hasher, SipHasher};
+use std::hash::{Hash, Hasher};
 use std::io::{self, Read};
 
 #[derive(Debug)]
@@ -16,8 +17,7 @@ pub fn process_files<'a>(paths: &'a [String]) -> Result<(Vec<&'a str>, Vec<&'a s
     let mut duplicate: Vec<&str> = Vec::new();
 
     for path in paths {
-        let hash = File::open(&path)
-            .and_then(hash_file)
+        let hash = File::open(&path).and_then(hash_file)
             .map_err(|e| {
                 Error {
                     inner: e,
@@ -36,11 +36,11 @@ pub fn process_files<'a>(paths: &'a [String]) -> Result<(Vec<&'a str>, Vec<&'a s
 }
 
 fn hash_file(file: File) -> io::Result<u64> {
-    let mut s = SipHasher::new();
+    let mut hasher = DefaultHasher::new();
     for b in file.bytes() {
-        b?.hash(&mut s);
+        b?.hash(&mut hasher);
     }
-    Ok(s.finish())
+    Ok(hasher.finish())
 }
 
 impl fmt::Display for Error {
