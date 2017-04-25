@@ -10,6 +10,7 @@ use std::fmt;
 use std::fs::File;
 use std::hash::{Hash, Hasher};
 use std::io::{self, Read};
+use std::env;
 
 #[derive(Debug)]
 pub struct Error {
@@ -19,7 +20,7 @@ pub struct Error {
 
 /// Sets up a thread pool for parallel processing of files.
 pub fn process_files<'a>(paths: &'a [String]) -> Result<(Vec<&'a str>, Vec<&'a str>), Error> {
-    let pool = CpuPool::new(4);
+    let pool = CpuPool::new(get_num_cpu());
 
     let futures = paths.iter().cloned().map(|path| {
         pool.spawn_fn::<_, Result<_, ()>>(move || {
@@ -60,6 +61,13 @@ fn hash_file(file: File) -> io::Result<u64> {
         b?.hash(&mut hasher);
     }
     Ok(hasher.finish())
+}
+
+fn get_num_cpu() -> usize {
+    env::var("FUNIQ_NUM_CPU")
+        .ok()
+        .and_then(|val| val.parse().ok())
+        .unwrap_or(4)
 }
 
 impl fmt::Display for Error {
