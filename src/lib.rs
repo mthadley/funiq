@@ -5,7 +5,7 @@ use futures::Future;
 use futures::future::join_all;
 use futures_cpupool::CpuPool;
 use std::collections::hash_map::DefaultHasher;
-use std::collections::HashMap;
+use std::collections::HashSet;
 use std::fmt;
 use std::fs::File;
 use std::hash::{Hash, Hasher};
@@ -37,27 +37,23 @@ pub fn process_files(paths: Vec<String>) -> Result<(Vec<String>, Vec<String>), E
         })
     });
 
-    let mut unique: HashMap<u64, String> = HashMap::new();
-    let mut duplicate: Vec<String> = Vec::new();
-
-    let results = join_all(futures).wait()
-        .map_err(|_| io::Error::new(io::ErrorKind::Other, "Unknown Error."))?;
-
-    for (result, path) in results.into_iter().zip(paths) {
-        let hash = result?;
-        if unique.contains_key(&hash) {
-            duplicate.push(path);
-        } else {
-            unique.insert(hash, path);
-        }
-    }
-
-    let unique_values = unique
+    let hashes = join_all(futures)
+        .wait()
+        .map_err(|_| io::Error::new(io::ErrorKind::Other, "Unknown Error."))?
         .into_iter()
-        .map(|(_, v)| v)
-        .collect();
+        .collect::<Result<Vec<_>, _>>()?;
 
-    Ok((unique_values, duplicate))
+    let mut seen: HashSet<u64> = HashSet::new();
+    let (duplicate, unique) = hashes
+        .into_iter()
+        .zip(paths)
+        .partition(|&(hash, _)| {
+            let is_duplicate = seen.contains(&hash);
+            seen.insert(hash.clone());
+            is_duplicate
+        });
+
+    Ok((map_snd(unique), map_snd(duplicate)))
 }
 
 fn hash_file(file: File) -> io::Result<u64> {
@@ -73,6 +69,10 @@ fn get_num_cpu() -> usize {
         .ok()
         .and_then(|val| val.parse().ok())
         .unwrap_or(4)
+}
+
+fn map_snd<T, U>(pairs: Vec<(T, U)>) -> Vec<U> {
+    pairs.into_iter().map(|(_, s)| s).collect()
 }
 
 impl fmt::Display for Error {
