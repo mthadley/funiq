@@ -49,7 +49,7 @@ pub fn process_files(paths: Vec<String>) -> Result<(Vec<String>, Vec<String>), E
         .zip(paths)
         .partition(|&(hash, _)| {
             let is_duplicate = seen.contains(&hash);
-            seen.insert(hash.clone());
+            seen.insert(hash);
             is_duplicate
         });
 
