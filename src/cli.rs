@@ -30,7 +30,7 @@ pub fn run() -> Result<(), Error> {
     files.append(&mut get_arg_files(&matches));
     files.dedup();
 
-    let (unique, duplicate) = process_files(&files)?;
+    let (unique, duplicate) = process_files(files)?;
     print_result(&unique, &duplicate, &matches);
 
     Ok(())
@@ -53,7 +53,7 @@ fn get_stdin_files() -> io::Result<Vec<String>> {
     Ok(lines)
 }
 
-fn print_result(unique: &[&str], duplicate: &[&str], matches: &ArgMatches) {
+fn print_result(unique: &[String], duplicate: &[String], matches: &ArgMatches) {
     if matches.is_present("summary") {
         let duplicate_len = duplicate.len();
         print_summary(duplicate_len, unique.len() - duplicate_len);

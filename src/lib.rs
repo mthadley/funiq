@@ -19,10 +19,10 @@ pub struct Error {
 }
 
 /// Sets up a thread pool for parallel processing of files.
-pub fn process_files<'a>(paths: &'a [String]) -> Result<(Vec<&'a str>, Vec<&'a str>), Error> {
+pub fn process_files(paths: Vec<String>) -> Result<(Vec<String>, Vec<String>), Error> {
     let pool = CpuPool::new(get_num_cpu());
 
-    let futures = paths.iter().cloned().map(|path| {
+    let futures = paths.clone().into_iter().map(|path| {
         pool.spawn_fn::<_, Result<_, ()>>(move || {
             let result = File::open(&path)
                 .and_then(hash_file)
@@ -37,13 +37,13 @@ pub fn process_files<'a>(paths: &'a [String]) -> Result<(Vec<&'a str>, Vec<&'a s
         })
     });
 
-    let mut unique: HashMap<u64, &str> = HashMap::new();
-    let mut duplicate: Vec<&str> = Vec::new();
+    let mut unique: HashMap<u64, String> = HashMap::new();
+    let mut duplicate: Vec<String> = Vec::new();
 
-    let mut results = join_all(futures).wait()
+    let results = join_all(futures).wait()
         .map_err(|_| io::Error::new(io::ErrorKind::Other, "Unknown Error."))?;
 
-    for (result, path) in results.drain(..).zip(paths) {
+    for (result, path) in results.into_iter().zip(paths) {
         let hash = result?;
         if unique.contains_key(&hash) {
             duplicate.push(path);
@@ -52,7 +52,12 @@ pub fn process_files<'a>(paths: &'a [String]) -> Result<(Vec<&'a str>, Vec<&'a s
         }
     }
 
-    Ok((unique.values().cloned().collect(), duplicate))
+    let unique_values = unique
+        .into_iter()
+        .map(|(_, v)| v)
+        .collect();
+
+    Ok((unique_values, duplicate))
 }
 
 fn hash_file(file: File) -> io::Result<u64> {
