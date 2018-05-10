@@ -1,5 +1,6 @@
 extern crate futures;
 extern crate futures_cpupool;
+extern crate num_cpus;
 
 use futures::Future;
 use futures::future::join_all;
@@ -20,7 +21,7 @@ pub struct Error {
 
 /// Sets up a thread pool for parallel processing of files.
 pub fn process_files(paths: Vec<String>) -> Result<(Vec<String>, Vec<String>), Error> {
-    let pool = CpuPool::new(get_num_cpu());
+    let pool = CpuPool::new(get_num_cpus());
 
     let futures = paths.clone().into_iter().map(|path| {
         pool.spawn_fn::<_, Result<_, ()>>(|| {
@@ -64,11 +65,11 @@ fn hash_file(file: File) -> io::Result<u64> {
     Ok(hasher.finish())
 }
 
-fn get_num_cpu() -> usize {
+fn get_num_cpus() -> usize {
     env::var("FUNIQ_NUM_CPU")
         .ok()
         .and_then(|val| val.parse().ok())
-        .unwrap_or(4)
+        .unwrap_or_else(num_cpus::get)
 }
 
 fn map_snd<T, U>(pairs: Vec<(T, U)>) -> Vec<U> {
