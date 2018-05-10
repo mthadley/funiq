@@ -23,7 +23,7 @@ pub fn process_files(paths: Vec<String>) -> Result<(Vec<String>, Vec<String>), E
     let pool = CpuPool::new(get_num_cpu());
 
     let futures = paths.clone().into_iter().map(|path| {
-        pool.spawn_fn::<_, Result<_, ()>>(move || {
+        pool.spawn_fn::<_, Result<_, ()>>(|| {
             let result = File::open(&path)
                 .and_then(hash_file)
                 .map_err(|e| {
