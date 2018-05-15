@@ -8,7 +8,6 @@ use std::fs::File;
 use std::hash::{Hash, Hasher};
 use std::io::{self, Read};
 
-#[derive(Debug)]
 pub struct Error {
     inner: io::Error,
     path: Option<String>,
@@ -46,7 +45,7 @@ fn map_snd<T, U>(pairs: Vec<(T, U)>) -> Vec<U> {
     pairs.into_iter().map(|(_, s)| s).collect()
 }
 
-impl fmt::Display for Error {
+impl fmt::Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.path {
             Some(ref path) => write!(f, "{}: {}", path, self.inner),
