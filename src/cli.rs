@@ -7,18 +7,24 @@ pub fn run() -> Result<(), Error> {
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .about("Outputs unique or duplicate files based on their data")
-        .arg(Arg::with_name("stdin")
-            .short("n")
-            .long("stdin")
-            .help("Read files from stdin instead"))
-        .arg(Arg::with_name("invert")
-            .short("i")
-            .long("invert")
-            .help("Displays duplicate, instead of unique, files"))
-        .arg(Arg::with_name("summary")
-            .short("s")
-            .long("summary")
-            .help("Displays a short summary"))
+        .arg(
+            Arg::with_name("stdin")
+                .short("n")
+                .long("stdin")
+                .help("Read files from stdin instead"),
+        )
+        .arg(
+            Arg::with_name("invert")
+                .short("i")
+                .long("invert")
+                .help("Displays duplicate, instead of unique, files"),
+        )
+        .arg(
+            Arg::with_name("summary")
+                .short("s")
+                .long("summary")
+                .help("Displays a short summary"),
+        )
         .arg(Arg::with_name("files").multiple(true))
         .get_matches();
 
@@ -69,13 +75,30 @@ fn print_result(unique: &[String], duplicate: &[String], matches: &ArgMatches) {
 }
 
 fn print_summary(duplicate_len: usize, unique_len: usize) {
-    println!("There are {} unique {} and {} {}.",
-             unique_len,
-             pluralize(unique_len, "file", "files"),
-             duplicate_len,
-             pluralize(duplicate_len, "duplicate", "duplicates"));
+    println!(
+        "There are {} unique {} and {} {}.",
+        unique_len,
+        pluralize(unique_len, "file", "files"),
+        duplicate_len,
+        pluralize(duplicate_len, "duplicate", "duplicates")
+    );
 }
 
 fn pluralize<'a>(count: usize, singular: &'a str, plural: &'a str) -> &'a str {
-    if count == 1 { singular } else { plural }
+    if count == 1 {
+        singular
+    } else {
+        plural
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_pluralize() {
+        assert_eq!(pluralize(1, "file", "files"), "file");
+        assert_eq!(pluralize(2, "file", "files"), "files");
+    }
 }
